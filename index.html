@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>치비 쉐이커 메이커</title>
+<title>쉐이커 메이커</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
 <style>
   :root{
@@ -334,7 +334,6 @@
     font-weight:600;
   }
   .result-link.show{display:inline-block;}
-  .mobile-btn{display:none;}
   .footer-note{
     text-align:center;
     color:var(--text-muted);
@@ -348,7 +347,7 @@
 <div class="wrap">
   <header>
     <div class="eyebrow">Chibi Charm Studio</div>
-    <h1>치비 쉐이커 메이커</h1>
+    <h1>쉐이커 메이커</h1>
     <p class="sub">캐릭터 이미지를 올리고 배지 안에 넣어보세요. 드래그로 흔들거나 버튼을 눌러 흔들면 반짝이와 함께 통통 튀어요. 마음에 드는 순간을 GIF로 저장할 수 있어요.</p>
   </header>
 
@@ -381,7 +380,6 @@
       <div class="panel">
         <h3><span class="num">3</span>흔들기</h3>
         <button class="action-btn btn-shake" id="shakeBtn">누르고 있으면 흔들려요</button>
-        <button class="action-btn btn-outline" id="motionBtn" style="display:none;">📱 기기 흔들기 켜기</button>
         <div class="hint">캔버스를 빠르게 드래그해도 흔들려요. 가만히 두면 액체 속에 뜬 것처럼 살짝 둥둥 떠다녀요.</div>
       </div>
 
@@ -906,37 +904,6 @@
   window.addEventListener('mouseup', stopHold);
   shakeBtn.addEventListener('touchend', stopHold);
   shakeBtn.addEventListener('mouseleave', stopHold);
-
-  // ---------- Device motion (mobile) ----------
-  const motionBtn = document.getElementById('motionBtn');
-  let motionEnabled = false;
-  function handleMotion(e){
-    const a = e.accelerationIncludingGravity || e.acceleration;
-    if(!a) return;
-    const mag = Math.hypot(a.x||0, a.y||0, a.z||0);
-    if(mag > 14){
-      triggerShake(Math.min(0.55,(mag-14)*0.05), Math.atan2(a.y||0, a.x||0));
-    }
-  }
-  function enableMotion(){
-    if(typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function'){
-      DeviceMotionEvent.requestPermission().then(state=>{
-        if(state === 'granted'){
-          window.addEventListener('devicemotion', handleMotion);
-          motionEnabled = true;
-          motionBtn.textContent = '📱 흔들기 감지 중';
-        }
-      }).catch(()=>{});
-    } else if(typeof DeviceMotionEvent !== 'undefined'){
-      window.addEventListener('devicemotion', handleMotion);
-      motionEnabled = true;
-      motionBtn.textContent = '📱 흔들기 감지 중';
-    }
-  }
-  if(typeof DeviceMotionEvent !== 'undefined'){
-    motionBtn.style.display = 'block';
-  }
-  motionBtn.addEventListener('click', enableMotion);
 
   // ---------- Drawing ----------
   function drawStar(c, r, spikes){
