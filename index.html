@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>치비 쉐이커 메이커</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+<style>
+  :root{
+    --bg-deep:#1b1032;
+    --bg-deep-2:#120a24;
+    --panel:rgba(255,255,255,0.055);
+    --panel-border:rgba(255,255,255,0.12);
+    --text-main:#f5f0ff;
+    --text-muted:#b3a3d6;
+    --pink:#ff9ecb;
+    --lavender:#b18cff;
+    --sky:#8ce8ff;
+    --gold:#ffe08c;
+    --font-display:'Baloo 2','Segoe UI Rounded','Arial Rounded MT Bold','Pretendard','Malgun Gothic',sans-serif;
+    --font-body:'Poppins','Segoe UI','Pretendard','Malgun Gothic',sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(177,140,255,0.25), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(255,158,203,0.18), transparent 55%),
+      linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-deep-2) 100%);
+    color:var(--text-main);
+    font-family:var(--font-body);
+    display:flex;
+    justify-content:center;
+    padding:32px 18px 60px;
+  }
+  .wrap{
+    width:100%;
+    max-width:1000px;
+  }
+  header{
+    text-align:center;
+    margin-bottom:28px;
+  }
+  .eyebrow{
+    font-size:12px;
+    letter-spacing:0.24em;
+    text-transform:uppercase;
+    color:var(--text-muted);
+    margin-bottom:8px;
+  }
+  h1{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:clamp(28px,5vw,42px);
+    margin:0 0 8px;
+    background:linear-gradient(90deg,var(--pink),var(--lavender) 45%,var(--sky));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    letter-spacing:0.01em;
+  }
+  .sub{
+    color:var(--text-muted);
+    font-size:14.5px;
+    max-width:520px;
+    margin:0 auto;
+    line-height:1.6;
+  }
+  .layout{
+    display:grid;
+    grid-template-columns:340px 1fr;
+    gap:22px;
+    align-items:start;
+  }
+  @media (max-width:800px){
+    .layout{grid-template-columns:1fr;}
+  }
+  .panel{
+    background:rgba(255,255,255,0.075);
+    border:1px solid var(--panel-border);
+    border-radius:20px;
+    padding:22px;
+  }
+  .panel + .panel{margin-top:16px;}
+  .panel h3{
+    font-family:var(--font-display);
+    font-size:15px;
+    margin:0 0 12px;
+    color:var(--text-main);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .panel h3 .num{
+    font-size:11px;
+    width:20px;height:20px;
+    border-radius:50%;
+    background:linear-gradient(135deg,var(--pink),var(--lavender));
+    display:flex;align-items:center;justify-content:center;
+    color:#1b1032;font-weight:700;
+  }
+  .upload-zone{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    border:2px solid var(--panel-border);
+    border-radius:14px;
+    padding:22px 18px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .2s, background .2s;
+    font-size:13px;
+    color:var(--text-muted);
+  }
+  .upload-zone .upload-icon{
+    font-size:22px;
+    opacity:0.85;
+  }
+  .upload-zone:hover{
+    border-color:var(--lavender);
+    background:rgba(177,140,255,0.06);
+  }
+  .upload-zone.drag-over{
+    border-color:var(--sky);
+    background:rgba(140,232,255,0.1);
+    border-style:solid;
+  }
+  .upload-zone input{display:none;}
+  .thumb-strip{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:12px;
+  }
+  .thumb{
+    position:relative;
+    width:44px;height:44px;
+    border-radius:50%;
+    overflow:hidden;
+    border:2px solid var(--panel-border);
+    background:#2a1d4a;
+  }
+  .thumb img{width:100%;height:100%;object-fit:cover;}
+  .thumb.default{
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;
+  }
+  .thumb .remove{
+    position:absolute;
+    top:-3px; right:-3px;
+    width:16px;height:16px;
+    border-radius:50%;
+    background:#ff5c8a;
+    color:#fff;
+    font-size:10px;
+    line-height:16px;
+    text-align:center;
+    cursor:pointer;
+    border:1.5px solid var(--bg-deep-2);
+  }
+  .theme-row{
+    display:flex;
+    gap:10px;
+    margin-bottom:4px;
+  }
+  .theme-dot{
+    width:32px;height:32px;
+    border-radius:50%;
+    cursor:pointer;
+    border:2px solid transparent;
+    transition:transform .15s, border-color .15s;
+    position:relative;
+  }
+  .theme-dot.active{
+    border-color:#fff;
+    transform:scale(1.12);
+  }
+  .custom-dot{
+    position:relative;
+    overflow:hidden;
+    background:conic-gradient(from 180deg, #ff9ecb, #ffe08c, #8ce8ff, #b18cff, #ff9ecb);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .custom-dot .custom-icon{
+    font-size:13px;
+    pointer-events:none;
+    filter:drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+  }
+  .custom-dot input[type="color"]{
+    position:absolute;
+    inset:-6px;
+    width:calc(100% + 12px);
+    height:calc(100% + 12px);
+    opacity:0;
+    cursor:pointer;
+    border:none;
+    padding:0;
+  }
+  .shape-row{display:flex;gap:8px;margin-top:14px;}
+  .chip-btn{
+    flex:1;
+    padding:8px 10px;
+    border-radius:10px;
+    border:1px solid var(--panel-border);
+    background:rgba(255,255,255,0.04);
+    color:var(--text-muted);
+    font-size:12.5px;
+    cursor:pointer;
+    text-align:center;
+    transition:all .15s;
+  }
+  .chip-btn.active{
+    background:linear-gradient(135deg,rgba(255,158,203,0.25),rgba(177,140,255,0.25));
+    color:var(--text-main);
+    border-color:var(--lavender);
+  }
+  .action-btn{
+    width:100%;
+    padding:13px 16px;
+    border-radius:13px;
+    border:none;
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:14.5px;
+    cursor:pointer;
+    margin-top:10px;
+    transition:transform .12s, box-shadow .12s;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  .action-btn:active{transform:scale(0.97);}
+  .btn-shake{
+    background:linear-gradient(135deg,var(--pink),var(--lavender));
+    color:#1b1032;
+    box-shadow:0 8px 20px rgba(177,140,255,0.35);
+  }
+  .btn-shake.holding{
+    box-shadow:0 4px 10px rgba(177,140,255,0.5);
+    filter:brightness(1.08);
+  }
+  .btn-outline{
+    background:transparent;
+    border:1px solid var(--panel-border);
+    color:var(--text-main);
+  }
+  .btn-outline:hover{border-color:var(--sky);}
+  .btn-gif{
+    background:linear-gradient(135deg,var(--gold),var(--pink));
+    color:#1b1032;
+    box-shadow:0 8px 20px rgba(255,224,140,0.25);
+  }
+  .btn-gif:disabled{
+    opacity:0.5;
+    cursor:not-allowed;
+    box-shadow:none;
+  }
+  .hint{
+    font-size:12px;
+    color:var(--text-muted);
+    margin-top:8px;
+    line-height:1.5;
+  }
+  .stage{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:18px;
+  }
+  .badge-frame{
+    position:relative;
+    width:min(420px,100%);
+    aspect-ratio:1/1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .badge-glow{
+    position:absolute;
+    inset:-30px;
+    border-radius:50%;
+    background:radial-gradient(circle, rgba(177,140,255,0.35), transparent 70%);
+    filter:blur(10px);
+    z-index:0;
+    animation:pulse 4s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:0.55; transform:scale(1);}
+    50%{opacity:0.9; transform:scale(1.05);}
+  }
+  canvas{
+    position:relative;
+    z-index:1;
+    width:100%;
+    height:100%;
+    cursor:grab;
+    touch-action:none;
+  }
+  canvas:active{cursor:grabbing;}
+  .progress-wrap{
+    width:min(420px,100%);
+    height:8px;
+    border-radius:6px;
+    background:rgba(255,255,255,0.08);
+    overflow:hidden;
+    display:none;
+  }
+  .progress-wrap.show{display:block;}
+  .progress-bar{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg,var(--pink),var(--gold));
+    transition:width .1s linear;
+  }
+  .status-text{
+    font-size:12.5px;
+    color:var(--text-muted);
+    min-height:18px;
+    text-align:center;
+  }
+  .result-link{
+    display:none;
+    padding:10px 18px;
+    border-radius:12px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid var(--panel-border);
+    color:var(--text-main);
+    text-decoration:none;
+    font-size:13.5px;
+    font-weight:600;
+  }
+  .result-link.show{display:inline-block;}
+  .mobile-btn{display:none;}
+  .footer-note{
+    text-align:center;
+    color:var(--text-muted);
+    font-size:11.5px;
+    margin-top:34px;
+    opacity:0.7;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Chibi Charm Studio</div>
+    <h1>치비 쉐이커 메이커</h1>
+    <p class="sub">캐릭터 이미지를 올리고 배지 안에 넣어보세요. 드래그로 흔들거나 버튼을 눌러 흔들면 반짝이와 함께 통통 튀어요. 마음에 드는 순간을 GIF로 저장할 수 있어요.</p>
+  </header>
+
+  <div class="layout">
+    <div class="controls">
+      <div class="panel">
+        <h3><span class="num">1</span>캐릭터 이미지 <span style="font-weight:400;color:var(--text-muted);font-size:12px;">(최대 5마리)</span></h3>
+        <label class="upload-zone" id="uploadZone">
+          <input type="file" id="fileInput" accept="image/*" multiple>
+          <span class="upload-icon">📎</span>
+          <span id="uploadLabel">클릭하거나 파일을 끌어다 놓기<br><span style="opacity:.7">(배경이 투명한 PNG 추천 · 여러 장 선택 가능)</span></span>
+        </label>
+        <div class="thumb-strip" id="thumbStrip"></div>
+        <div class="hint" id="charHint">1 / 5마리</div>
+      </div>
+
+      <div class="panel">
+        <h3><span class="num">2</span>테마 &amp; 배지 모양</h3>
+        <div class="theme-row" id="themeRow"></div>
+        <div class="shape-row">
+          <div class="chip-btn active" data-shape="circle">동그란 배지</div>
+          <div class="chip-btn" data-shape="square">각진 배지</div>
+        </div>
+        <div class="shape-row" style="margin-top:8px;">
+          <div class="chip-btn active" data-border="transparent">투명하게</div>
+          <div class="chip-btn" data-border="sticker">흰 스티커 테두리</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3><span class="num">3</span>흔들기</h3>
+        <button class="action-btn btn-shake" id="shakeBtn">누르고 있으면 흔들려요</button>
+        <button class="action-btn btn-outline" id="motionBtn" style="display:none;">📱 기기 흔들기 켜기</button>
+        <div class="hint">캔버스를 빠르게 드래그해도 흔들려요. 가만히 두면 액체 속에 뜬 것처럼 살짝 둥둥 떠다녀요.</div>
+      </div>
+
+      <div class="panel">
+        <h3><span class="num">4</span>내보내기</h3>
+        <div class="shape-row" style="margin-bottom:10px;">
+          <div class="chip-btn active" data-gifbg="white">배경 흰색</div>
+          <div class="chip-btn" data-gifbg="black">배경 검정</div>
+        </div>
+        <button class="action-btn btn-gif" id="gifBtn">🎬 루프 GIF로 저장</button>
+        <div class="progress-wrap" id="progressWrap"><div class="progress-bar" id="progressBar"></div></div>
+        <div class="status-text" id="statusText"></div>
+        <a class="result-link" id="resultLink" download="chibi_shaker.gif">✨ GIF 다운로드</a>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="badge-frame">
+        <div class="badge-glow"></div>
+        <canvas id="badgeCanvas" width="440" height="440"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">Drag / press-and-hold to shake · works best with a transparent PNG chibi</div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Theme definitions ----------
+  const THEMES = {
+    pink:     { name:'핑크', bg:['#3a1a45','#ff9ecb'], glitter:['#ffd1e8','#ffffff','#ff9ecb','#ffe08c'], rim:['#ffd6ea','#ff9ecb','#c77dff','#ffd6ea'] },
+    lavender: { name:'라벤더', bg:['#1e1440','#b18cff'], glitter:['#e0d1ff','#ffffff','#b18cff','#8ce8ff'], rim:['#e6d9ff','#b18cff','#7b5cff','#e6d9ff'] },
+    mint:     { name:'민트', bg:['#0f3d3a','#8ce8ff'], glitter:['#d1fff0','#ffffff','#8ce8ff','#b18cff'], rim:['#d9fff5','#8ce8ff','#4fd1c5','#d9fff5'] },
+    gold:     { name:'골드', bg:['#402a10','#ffe08c'], glitter:['#fff6d1','#ffffff','#ffe08c','#ff9ecb'], rim:['#fff2cc','#ffe08c','#e0a94a','#fff2cc'] }
+  };
+  let currentTheme = 'lavender';
+  let currentShape = 'circle';
+
+  // ---------- Custom color -> full theme ----------
+  function hexToHsl(hex){
+    let r = parseInt(hex.slice(1,3),16)/255;
+    let g = parseInt(hex.slice(3,5),16)/255;
+    let b = parseInt(hex.slice(5,7),16)/255;
+    const max = Math.max(r,g,b), min = Math.min(r,g,b);
+    let h,s,l = (max+min)/2;
+    if(max===min){ h=0; s=0; }
+    else{
+      const d = max-min;
+      s = l > 0.5 ? d/(2-max-min) : d/(max+min);
+      switch(max){
+        case r: h = (g-b)/d + (g<b?6:0); break;
+        case g: h = (b-r)/d + 2; break;
+        default: h = (r-g)/d + 4;
+      }
+      h *= 60;
+    }
+    return [h, s*100, l*100];
+  }
+  function hslToHex(h,s,l){
+    h = ((h%360)+360)%360; s = Math.max(0,Math.min(100,s))/100; l = Math.max(0,Math.min(100,l))/100;
+    const c = (1-Math.abs(2*l-1))*s;
+    const x = c*(1-Math.abs((h/60)%2-1));
+    const m = l-c/2;
+    let r,g,b;
+    if(h<60){r=c;g=x;b=0;} else if(h<120){r=x;g=c;b=0;} else if(h<180){r=0;g=c;b=x;}
+    else if(h<240){r=0;g=x;b=c;} else if(h<300){r=x;g=0;b=c;} else {r=c;g=0;b=x;}
+    const toHex = v => Math.round((v+m)*255).toString(16).padStart(2,'0');
+    return '#'+toHex(r)+toHex(g)+toHex(b);
+  }
+  function themeFromColor(hex){
+    const [h,s,l] = hexToHsl(hex);
+    return {
+      name:'커스텀',
+      bg: [ hslToHex(h, Math.min(90,s+10), Math.max(12,l-34)), hslToHex(h, Math.min(95,s+8), Math.min(80,l+18)) ],
+      glitter: [ hslToHex(h, Math.max(15,s-35), Math.min(94,l+34)), '#ffffff', hex, hslToHex(h+35, s, Math.min(85,l+6)) ],
+      rim: [ hslToHex(h, Math.max(12,s-42), Math.min(94,l+30)), hex, hslToHex(h, Math.min(100,s+8), Math.max(16,l-20)), hslToHex(h, Math.max(12,s-42), Math.min(94,l+30)) ]
+    };
+  }
+
+  const themeRow = document.getElementById('themeRow');
+  const themeDots = {};
+  function setActiveTheme(key){
+    currentTheme = key;
+    Object.keys(themeDots).forEach(k=> themeDots[k].classList.toggle('active', k===key));
+  }
+  Object.keys(THEMES).forEach(key=>{
+    const t = THEMES[key];
+    const dot = document.createElement('div');
+    dot.className = 'theme-dot' + (key===currentTheme ? ' active':'');
+    dot.style.background = `linear-gradient(135deg, ${t.bg[0]}, ${t.bg[1]})`;
+    dot.title = t.name;
+    dot.addEventListener('click', ()=> setActiveTheme(key));
+    themeRow.appendChild(dot);
+    themeDots[key] = dot;
+  });
+
+  // custom color-picker swatch
+  const customDot = document.createElement('label');
+  customDot.className = 'theme-dot custom-dot';
+  customDot.title = '내가 원하는 색으로 직접 만들기';
+  customDot.innerHTML = '<span class="custom-icon">🎨</span><input type="color" id="customColorInput" value="#b18cff">';
+  themeRow.appendChild(customDot);
+  themeDots.custom = customDot;
+  const customColorInput = customDot.querySelector('input');
+  function applyCustomColor(hex){
+    THEMES.custom = themeFromColor(hex);
+    customDot.style.background = hex;
+    setActiveTheme('custom');
+  }
+  customColorInput.addEventListener('input', ()=> applyCustomColor(customColorInput.value));
+  customColorInput.addEventListener('click', (e)=> e.stopPropagation());
+
+  document.querySelectorAll('.chip-btn[data-shape]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.chip-btn[data-shape]').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      currentShape = btn.dataset.shape;
+    });
+  });
+
+  let currentBorderStyle = 'transparent'; // 'transparent' | 'sticker'
+  document.querySelectorAll('.chip-btn[data-border]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.chip-btn[data-border]').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      currentBorderStyle = btn.dataset.border;
+    });
+  });
+
+  let gifBgColor = '#ffffff';
+  document.querySelectorAll('.chip-btn[data-gifbg]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.chip-btn[data-gifbg]').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      gifBgColor = btn.dataset.gifbg === 'black' ? '#000000' : '#ffffff';
+    });
+  });
+
+  // ---------- Canvas setup ----------
+  const canvas = document.getElementById('badgeCanvas');
+  const ctx = canvas.getContext('2d');
+  const LOGICAL = 440;
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = LOGICAL * DPR;
+  canvas.height = LOGICAL * DPR;
+  ctx.scale(DPR, DPR);
+
+  const CENTER = LOGICAL/2;
+  const BADGE_R = 178; // inner playable radius
+
+  // ---------- Character images (up to MAX_CHARS) ----------
+  const MAX_CHARS = 5;
+  let characters = []; // each: { img, x,y,vx,vy,r,rot,vrot, phaseOffset, response, isDefault }
+
+  function drawDefaultChibi(){
+    // Programmatic placeholder chibi so the demo works without upload
+    const c = document.createElement('canvas');
+    c.width = 300; c.height = 300;
+    const cx = c.getContext('2d');
+    cx.translate(150,150);
+    // body
+    cx.fillStyle = '#ffd6ea';
+    cx.beginPath(); cx.ellipse(0,70,60,55,0,0,Math.PI*2); cx.fill();
+    // head
+    cx.fillStyle = '#fff2e6';
+    cx.beginPath(); cx.arc(0,-20,85,0,Math.PI*2); cx.fill();
+    // hair
+    cx.fillStyle = '#7b5cff';
+    cx.beginPath();
+    cx.moveTo(-85,-30);
+    cx.quadraticCurveTo(-95,-110,-10,-110);
+    cx.quadraticCurveTo(90,-115,85,-25);
+    cx.quadraticCurveTo(70,-70,40,-55);
+    cx.quadraticCurveTo(20,-90,0,-60);
+    cx.quadraticCurveTo(-20,-90,-40,-55);
+    cx.quadraticCurveTo(-60,-70,-85,-30);
+    cx.fill();
+    // blush
+    cx.fillStyle = 'rgba(255,158,203,0.6)';
+    cx.beginPath(); cx.ellipse(-45,-5,14,9,0,0,Math.PI*2); cx.fill();
+    cx.beginPath(); cx.ellipse(45,-5,14,9,0,0,Math.PI*2); cx.fill();
+    // eyes
+    cx.fillStyle = '#3a2a55';
+    cx.beginPath(); cx.ellipse(-28,-20,9,13,0,0,Math.PI*2); cx.fill();
+    cx.beginPath(); cx.ellipse(28,-20,9,13,0,0,Math.PI*2); cx.fill();
+    cx.fillStyle = '#ffffff';
+    cx.beginPath(); cx.arc(-25,-25,3,0,Math.PI*2); cx.fill();
+    cx.beginPath(); cx.arc(31,-25,3,0,Math.PI*2); cx.fill();
+    // mouth
+    cx.strokeStyle = '#a17c9e'; cx.lineWidth = 3; cx.lineCap='round';
+    cx.beginPath(); cx.arc(0,5,10,0.15*Math.PI,0.85*Math.PI); cx.stroke();
+    return c;
+  }
+
+  function characterRadius(count){
+    // more characters -> a little smaller each, so they all fit comfortably
+    return Math.max(34, 66 - (count-1)*7);
+  }
+
+  function makeCharacter(img, isDefault){
+    return {
+      img, isDefault: !!isDefault,
+      x:0, y:0, vx:0, vy:0, r:64, rot:0, vrot:0,
+      phaseOffset: rand(-0.35,0.35),
+      response: rand(0.85,1.15)
+    };
+  }
+
+  function repositionCharacters(){
+    // spread characters around the center in a ring so freshly added ones
+    // don't spawn stacked on top of each other
+    const n = characters.length;
+    characters.forEach((c,i)=>{
+      const ang = (i/n)*Math.PI*2 - Math.PI/2;
+      const dist = n === 1 ? 0 : Math.min(BADGE_R*0.42, 30 + n*8);
+      c.x = Math.cos(ang)*dist;
+      c.y = Math.sin(ang)*dist;
+    });
+  }
+
+  function updateRadii(){
+    const r = characterRadius(characters.length);
+    characters.forEach(c=> c.r = r);
+  }
+
+  function renderThumbs(){
+    thumbStrip.innerHTML = '';
+    characters.forEach((c,i)=>{
+      const el = document.createElement('div');
+      el.className = 'thumb' + (c.isDefault ? ' default' : '');
+      if(c.isDefault){
+        el.textContent = '🎀';
+      } else {
+        const img = document.createElement('img');
+        img.src = c.img.src;
+        el.appendChild(img);
+        const rm = document.createElement('div');
+        rm.className = 'remove';
+        rm.textContent = '×';
+        rm.addEventListener('click', (ev)=>{
+          ev.preventDefault(); ev.stopPropagation();
+          removeCharacter(i);
+        });
+        el.appendChild(rm);
+      }
+      thumbStrip.appendChild(el);
+    });
+    charHint.textContent = characters.length + ' / ' + MAX_CHARS + '마리' +
+      (characters.length >= MAX_CHARS ? ' · 가득 찼어요' : '');
+  }
+
+  function removeCharacter(index){
+    characters.splice(index,1);
+    if(characters.length === 0){
+      const c = drawDefaultChibi();
+      const img = new Image();
+      img.onload = ()=>{
+        characters.push(makeCharacter(img, true));
+        updateRadii(); repositionCharacters(); renderThumbs();
+      };
+      img.src = c.toDataURL();
+      return;
+    }
+    updateRadii(); repositionCharacters(); renderThumbs();
+  }
+
+  function initDefaultCharacter(){
+    const c = drawDefaultChibi();
+    const img = new Image();
+    img.onload = ()=>{
+      characters.push(makeCharacter(img, true));
+      updateRadii(); repositionCharacters(); renderThumbs();
+    };
+    img.src = c.toDataURL();
+  }
+  initDefaultCharacter();
+
+  const fileInput = document.getElementById('fileInput');
+  const uploadZone = document.getElementById('uploadZone');
+  const uploadLabel = document.getElementById('uploadLabel');
+  const thumbStrip = document.getElementById('thumbStrip');
+  const charHint = document.getElementById('charHint');
+
+  function loadImageFile(file){
+    return new Promise((resolve, reject)=>{
+      if(!file.type || !file.type.startsWith('image/')){ reject(new Error('not an image')); return; }
+      const reader = new FileReader();
+      reader.onload = (ev)=>{
+        const img = new Image();
+        img.onload = ()=> resolve(img);
+        img.onerror = ()=> reject(new Error('image load failed'));
+        img.src = ev.target.result;
+      };
+      reader.onerror = ()=> reject(new Error('read failed'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function addFiles(fileList){
+    const files = Array.from(fileList || []).filter(f => f.type && f.type.startsWith('image/'));
+    if(!files.length) return;
+
+    // first real upload replaces the default placeholder
+    if(characters.length === 1 && characters[0].isDefault){
+      characters = [];
+    }
+
+    for(const file of files){
+      if(characters.length >= MAX_CHARS) break;
+      try{
+        const img = await loadImageFile(file);
+        characters.push(makeCharacter(img, false));
+      }catch(err){ /* skip unreadable file */ }
+    }
+
+    updateRadii();
+    repositionCharacters();
+    renderThumbs();
+
+    if(characters.length >= MAX_CHARS){
+      uploadLabel.innerHTML = '✅ 최대 5마리를 모두 채웠어요<br><span style="opacity:.7">캐릭터를 지우면 다시 추가할 수 있어요</span>';
+    } else {
+      uploadLabel.innerHTML = '➕ 캐릭터 추가하기<br><span style="opacity:.7">' + characters.length + ' / ' + MAX_CHARS + '마리 담김</span>';
+    }
+  }
+
+  fileInput.addEventListener('change', async (e)=>{
+    await addFiles(e.target.files);
+    fileInput.value = '';
+  });
+
+  // real drag-and-drop support (the zone previously only worked on click)
+  ['dragenter','dragover'].forEach(evt=>{
+    uploadZone.addEventListener(evt, (e)=>{
+      e.preventDefault(); e.stopPropagation();
+      uploadZone.classList.add('drag-over');
+    });
+  });
+  ['dragleave','dragend'].forEach(evt=>{
+    uploadZone.addEventListener(evt, (e)=>{
+      e.preventDefault(); e.stopPropagation();
+      uploadZone.classList.remove('drag-over');
+    });
+  });
+  uploadZone.addEventListener('drop', async (e)=>{
+    e.preventDefault(); e.stopPropagation();
+    uploadZone.classList.remove('drag-over');
+    await addFiles(e.dataTransfer.files);
+  });
+
+  // ---------- Physics ----------
+  const NUM_GLITTER = 26;
+  let glitter = [];
+
+  function rand(a,b){ return a + Math.random()*(b-a); }
+
+  function initGlitter(){
+    glitter = [];
+    for(let i=0;i<NUM_GLITTER;i++){
+      const ang = rand(0, Math.PI*2);
+      const dist = rand(20, BADGE_R-15);
+      glitter.push({
+        x: Math.cos(ang)*dist,
+        y: Math.sin(ang)*dist,
+        vx: rand(-0.3,0.3),
+        vy: rand(-0.3,0.3),
+        r: rand(2.5,6.5),
+        buoy: rand(-0.012,0.02),
+        colorIdx: Math.floor(rand(0,4)),
+        shape: Math.random() < 0.5 ? 'circle' : 'star',
+        rot: rand(0,Math.PI*2),
+        vrot: rand(-0.05,0.05),
+        phaseOffset: rand(-0.5,0.5),
+        response: rand(0.8,1.3)
+      });
+    }
+  }
+  initGlitter();
+
+  // Directional "grab and shake" model: a low-frequency sine swing along a
+  // chosen direction, instead of high-frequency random jitter (which read as trembling).
+  let shakeAmp = 0;        // 0..~2.4, decaying swing amplitude
+  let shakePhase = 0;      // radians
+  let shakeDirAngle = 0;   // current swing direction
+  const SHAKE_FREQ_BASE = 1.8; // Hz-ish at rest energy
+  const GRAVITY = 0.045;
+
+  function triggerShake(strength, angle){
+    shakeAmp = Math.min(2.4, shakeAmp + strength);
+    if(angle !== undefined && !isNaN(angle)) shakeDirAngle = angle;
+  }
+
+  function boundParticle(p, radius){
+    const dist = Math.hypot(p.x,p.y);
+    const limit = BADGE_R - radius - 6;
+    if(dist > limit){
+      const nx = p.x/dist, ny = p.y/dist;
+      p.x = nx*limit; p.y = ny*limit;
+      const dot = p.vx*nx + p.vy*ny;
+      p.vx -= 1.5*dot*nx;
+      p.vy -= 1.5*dot*ny;
+      p.vx *= 0.55; p.vy *= 0.55;
+    }
+  }
+
+  function stepPhysics(dt){
+    const calm = 1; // ambient turbulence multiplier
+
+    // advance the swing phase — faster wobble the more energy is in the shake
+    const freq = SHAKE_FREQ_BASE + shakeAmp*0.7;
+    shakePhase += freq * dt * (Math.PI*2/60);
+    // force is the derivative of the sway position, so it peaks as the sway
+    // crosses center — this reads as a "whip" rather than a tremor
+
+    // characters — each moves as a coherent, weighty unit (small lag, big arcs),
+    // with slight per-character phase/response variance so a group doesn't move in lockstep
+    characters.forEach(ch=>{
+      ch.vy += GRAVITY*0.35*dt;
+      ch.vx += Math.sin(performance.now()/900 + ch.phaseOffset*4)*0.006*calm;
+      ch.vy += Math.cos(performance.now()/1100 + ch.phaseOffset*4)*0.004*calm;
+      const chForce = shakeAmp * Math.cos(shakePhase + ch.phaseOffset*0.4);
+      ch.vx += Math.cos(shakeDirAngle + ch.phaseOffset*0.4) * chForce * 2.1 * ch.response * dt;
+      ch.vy += Math.sin(shakeDirAngle + ch.phaseOffset*0.4) * chForce * 2.1 * ch.response * dt;
+      ch.vrot += chForce * 0.045 * dt;
+      ch.vx *= 0.955; ch.vy *= 0.955;
+      ch.x += ch.vx*dt;
+      ch.y += ch.vy*dt;
+      boundParticle(ch, ch.r);
+      ch.vrot *= 0.9;
+      ch.rot += ch.vrot*dt;
+      ch.rot *= 0.98;
+    });
+
+    // keep characters from fully overlapping each other
+    for(let i=0;i<characters.length;i++){
+      for(let j=i+1;j<characters.length;j++){
+        const a = characters[i], b = characters[j];
+        const dx = b.x-a.x, dy = b.y-a.y;
+        const dist = Math.hypot(dx,dy) || 0.001;
+        const minDist = a.r + b.r - 8;
+        if(dist < minDist){
+          const overlap = (minDist - dist) * 0.5;
+          const nx = dx/dist, ny = dy/dist;
+          a.x -= nx*overlap; a.y -= ny*overlap;
+          b.x += nx*overlap; b.y += ny*overlap;
+        }
+      }
+    }
+
+    // glitter — same directional whip but each piece scatters slightly differently
+    glitter.forEach(p=>{
+      p.vy += p.buoy*dt*0.6;
+      p.vx += Math.sin(performance.now()/700 + p.x)*0.01*calm;
+      const pForce = shakeAmp * Math.cos(shakePhase + p.phaseOffset);
+      p.vx += Math.cos(shakeDirAngle + p.phaseOffset) * pForce * 3.0 * p.response * dt;
+      p.vy += Math.sin(shakeDirAngle + p.phaseOffset) * pForce * 3.0 * p.response * dt;
+      p.vx *= 0.94; p.vy *= 0.94;
+      p.x += p.vx*dt; p.y += p.vy*dt;
+      p.rot += p.vrot*dt;
+      boundParticle(p, p.r);
+    });
+
+    // amplitude decays smoothly so a shake plays out as a few big swings, not a snap
+    shakeAmp *= Math.pow(0.965, dt);
+    if(shakeAmp < 0.004) shakeAmp = 0;
+  }
+
+  // ---------- Drag-to-shake ----------
+  let lastPointer = null;
+  let lastTime = 0;
+  function pointerPos(e){
+    const rect = canvas.getBoundingClientRect();
+    const cx = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    const cy = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+    return { x: cx*(LOGICAL/rect.width), y: cy*(LOGICAL/rect.height) };
+  }
+  function onPointerMove(e){
+    if(!lastPointer) return;
+    const p = pointerPos(e);
+    const now = performance.now();
+    const dt = Math.max(1, now - lastTime);
+    const dx = p.x-lastPointer.x, dy = p.y-lastPointer.y;
+    const speed = Math.hypot(dx,dy) / dt * 16;
+    if(speed > 3){
+      triggerShake(Math.min(0.55, speed*0.022), Math.atan2(dy,dx));
+    }
+    lastPointer = p; lastTime = now;
+  }
+  canvas.addEventListener('mousedown', e=>{ lastPointer = pointerPos(e); lastTime = performance.now(); });
+  canvas.addEventListener('mousemove', onPointerMove);
+  window.addEventListener('mouseup', ()=>{ lastPointer = null; });
+  canvas.addEventListener('touchstart', e=>{ lastPointer = pointerPos(e); lastTime = performance.now(); }, {passive:true});
+  canvas.addEventListener('touchmove', e=>{ onPointerMove(e); }, {passive:true});
+  canvas.addEventListener('touchend', ()=>{ lastPointer = null; });
+
+  // ---------- Hold-button-to-shake ----------
+  const shakeBtn = document.getElementById('shakeBtn');
+  let holding = false;
+  let holdInterval = null;
+  let holdAngle = rand(0, Math.PI*2);
+  function startHold(){
+    if(holding) return;
+    holding = true;
+    shakeBtn.classList.add('holding');
+    holdAngle = rand(0, Math.PI*2);
+    triggerShake(0.6, holdAngle);
+    holdInterval = setInterval(()=>{
+      holdAngle += Math.PI + rand(-0.35, 0.35); // swing back the other way each pulse
+      triggerShake(0.62, holdAngle);
+    }, 340);
+  }
+  function stopHold(){
+    holding = false;
+    shakeBtn.classList.remove('holding');
+    clearInterval(holdInterval);
+  }
+  shakeBtn.addEventListener('mousedown', startHold);
+  shakeBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); startHold(); }, {passive:false});
+  window.addEventListener('mouseup', stopHold);
+  shakeBtn.addEventListener('touchend', stopHold);
+  shakeBtn.addEventListener('mouseleave', stopHold);
+
+  // ---------- Device motion (mobile) ----------
+  const motionBtn = document.getElementById('motionBtn');
+  let motionEnabled = false;
+  function handleMotion(e){
+    const a = e.accelerationIncludingGravity || e.acceleration;
+    if(!a) return;
+    const mag = Math.hypot(a.x||0, a.y||0, a.z||0);
+    if(mag > 14){
+      triggerShake(Math.min(0.55,(mag-14)*0.05), Math.atan2(a.y||0, a.x||0));
+    }
+  }
+  function enableMotion(){
+    if(typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function'){
+      DeviceMotionEvent.requestPermission().then(state=>{
+        if(state === 'granted'){
+          window.addEventListener('devicemotion', handleMotion);
+          motionEnabled = true;
+          motionBtn.textContent = '📱 흔들기 감지 중';
+        }
+      }).catch(()=>{});
+    } else if(typeof DeviceMotionEvent !== 'undefined'){
+      window.addEventListener('devicemotion', handleMotion);
+      motionEnabled = true;
+      motionBtn.textContent = '📱 흔들기 감지 중';
+    }
+  }
+  if(typeof DeviceMotionEvent !== 'undefined'){
+    motionBtn.style.display = 'block';
+  }
+  motionBtn.addEventListener('click', enableMotion);
+
+  // ---------- Drawing ----------
+  function drawStar(c, r, spikes){
+    const step = Math.PI/spikes;
+    c.beginPath();
+    for(let i=0;i<spikes*2;i++){
+      const rad = (i%2===0) ? r : r*0.45;
+      const ang = i*step - Math.PI/2;
+      const x = Math.cos(ang)*rad, y = Math.sin(ang)*rad;
+      if(i===0) c.moveTo(x,y); else c.lineTo(x,y);
+    }
+    c.closePath();
+  }
+
+  function badgeClipPath(c){
+    c.beginPath();
+    if(currentShape === 'circle'){
+      c.arc(0,0,BADGE_R,0,Math.PI*2);
+    } else {
+      const s = BADGE_R*0.92, rad = 26;
+      c.moveTo(-s+rad,-s);
+      c.lineTo(s-rad,-s); c.quadraticCurveTo(s,-s,s,-s+rad);
+      c.lineTo(s,s-rad); c.quadraticCurveTo(s,s,s-rad,s);
+      c.lineTo(-s+rad,s); c.quadraticCurveTo(-s,s,-s,s-rad);
+      c.lineTo(-s,-s+rad); c.quadraticCurveTo(-s,-s,-s+rad,-s);
+    }
+  }
+
+  function render(){
+    const theme = THEMES[currentTheme];
+    ctx.clearRect(0,0,LOGICAL,LOGICAL);
+
+    ctx.save();
+    ctx.translate(CENTER, CENTER);
+
+    // whole-badge sway from shake — a directional swing, with a touch of
+    // fine texture so it doesn't feel perfectly mechanical
+    const sway = Math.sin(shakePhase) * shakeAmp;
+    const jx = Math.cos(shakeDirAngle) * sway * 15 + (Math.random()-0.5) * shakeAmp * 1.5;
+    const jy = Math.sin(shakeDirAngle) * sway * 15 + (Math.random()-0.5) * shakeAmp * 1.5;
+    const jr = Math.sin(shakePhase*0.85) * shakeAmp * 0.05;
+    ctx.translate(jx, jy);
+    ctx.rotate(jr);
+
+    // clip to badge shape
+    ctx.save();
+    badgeClipPath(ctx);
+    ctx.clip();
+
+    // background gradient
+    const grad = ctx.createRadialGradient(0,-BADGE_R*0.3,10,0,0,BADGE_R*1.15);
+    grad.addColorStop(0, theme.bg[1]);
+    grad.addColorStop(1, theme.bg[0]);
+    ctx.fillStyle = grad;
+    ctx.fillRect(-BADGE_R-10,-BADGE_R-10, (BADGE_R+10)*2, (BADGE_R+10)*2);
+
+    // static sparkle dust (subtle)
+    ctx.globalAlpha = 0.18;
+    ctx.fillStyle = '#ffffff';
+    for(let i=0;i<18;i++){
+      const ang = (i/18)*Math.PI*2 + 0.3;
+      const d = BADGE_R*0.5 + (i%3)*20;
+      ctx.beginPath();
+      ctx.arc(Math.cos(ang)*d, Math.sin(ang)*d, 1.4, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // back-layer glitter (behind character) - first half
+    glitter.slice(0, glitter.length/2).forEach(p=> drawGlitterPiece(p, theme, 0.55));
+
+    // characters
+    drawCharacters();
+
+    // front-layer glitter
+    glitter.slice(glitter.length/2).forEach(p=> drawGlitterPiece(p, theme, 0.95));
+
+    // glossy highlight
+    const gloss = ctx.createRadialGradient(-BADGE_R*0.35,-BADGE_R*0.5,5,-BADGE_R*0.2,-BADGE_R*0.3,BADGE_R*0.9);
+    gloss.addColorStop(0,'rgba(255,255,255,0.35)');
+    gloss.addColorStop(0.4,'rgba(255,255,255,0.06)');
+    gloss.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle = gloss;
+    ctx.fillRect(-BADGE_R-10,-BADGE_R-10, (BADGE_R+10)*2, (BADGE_R+10)*2);
+
+    ctx.restore(); // end clip
+
+    // rim (metallic holographic ring)
+    ctx.save();
+    badgeClipPath(ctx);
+    const rimGrad = ctx.createLinearGradient(-BADGE_R,-BADGE_R,BADGE_R,BADGE_R);
+    theme.rim.forEach((c,i)=> rimGrad.addColorStop(i/(theme.rim.length-1), c));
+    ctx.lineWidth = 14;
+    ctx.strokeStyle = rimGrad;
+    ctx.stroke();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.restore(); // end translate/jitter
+  }
+
+  function drawGlitterPiece(p, theme, alphaMax){
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rot);
+    ctx.globalAlpha = alphaMax;
+    ctx.fillStyle = theme.glitter[p.colorIdx % theme.glitter.length];
+    if(p.shape === 'star'){
+      drawStar(ctx, p.r, 4);
+      ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.arc(0,0,p.r,0,Math.PI*2);
+      ctx.fill();
+    }
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
+  function drawCharacters(){
+    characters.forEach(ch=>{
+      if(!ch.img) return;
+      ctx.save();
+      ctx.translate(ch.x, ch.y);
+      ctx.rotate(ch.rot);
+
+      const r = ch.r;
+      const iw = ch.img.width, ih = ch.img.height;
+      const scale = Math.max((r*2)/iw, (r*2)/ih) * 1.02;
+      const dw = iw*scale, dh = ih*scale;
+
+      if(currentBorderStyle === 'sticker'){
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(0,0,r,0,Math.PI*2);
+        ctx.closePath();
+        // white sticker-style border
+        ctx.fillStyle = '#fff';
+        ctx.shadowColor = 'rgba(0,0,0,0.25)';
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.clip();
+        ctx.drawImage(ch.img, -dw/2, -dh/2, dw, dh);
+        ctx.restore();
+
+        // thin outline
+        ctx.beginPath();
+        ctx.arc(0,0,r,0,Math.PI*2);
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+        ctx.stroke();
+      } else {
+        // transparent: no backing shape, no clip — the PNG's own alpha shows
+        // through as-is, with a soft shadow that hugs its actual silhouette
+        ctx.save();
+        ctx.shadowColor = 'rgba(0,0,0,0.35)';
+        ctx.shadowBlur = 9;
+        ctx.shadowOffsetY = 2;
+        ctx.drawImage(ch.img, -dw/2, -dh/2, dw, dh);
+        ctx.restore();
+      }
+
+      ctx.restore();
+    });
+  }
+
+  // ---------- Main loop ----------
+  let lastFrameTime = performance.now();
+  function loop(now){
+    const dt = Math.min(3, (now-lastFrameTime)/16.67);
+    lastFrameTime = now;
+    stepPhysics(dt);
+    render();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  // ---------- GIF export ----------
+  const gifBtn = document.getElementById('gifBtn');
+  const progressWrap = document.getElementById('progressWrap');
+  const progressBar = document.getElementById('progressBar');
+  const statusText = document.getElementById('statusText');
+  const resultLink = document.getElementById('resultLink');
+
+  let workerUrlPromise = null;
+  function getWorkerUrl(){
+    if(!workerUrlPromise){
+      workerUrlPromise = fetch('https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js')
+        .then(r=>{
+          if(!r.ok) throw new Error('worker fetch failed');
+          return r.text();
+        })
+        .then(text=>{
+          const blob = new Blob([text], {type:'application/javascript'});
+          return URL.createObjectURL(blob);
+        });
+    }
+    return workerUrlPromise;
+  }
+
+  let recording = false;
+  gifBtn.addEventListener('click', async ()=>{
+    if(recording) return;
+    recording = true;
+    gifBtn.disabled = true;
+    resultLink.classList.remove('show');
+    statusText.textContent = '녹화 준비 중… (지금 흔들어 보세요!)';
+    progressWrap.classList.add('show');
+    progressBar.style.width = '0%';
+
+    let workerUrl;
+    try{
+      workerUrl = await getWorkerUrl();
+    }catch(err){
+      statusText.textContent = 'GIF 엔진을 불러오지 못했어요. 네트워크 설정을 확인해주세요.';
+      recording = false;
+      gifBtn.disabled = false;
+      return;
+    }
+
+    const gif = new GIF({
+      workers: 2,
+      quality: 8,
+      width: LOGICAL,
+      height: LOGICAL,
+      workerScript: workerUrl,
+      background: gifBgColor
+    });
+
+    // give the shaker a little energy so the GIF is lively even if user is slow to react
+    triggerShake(0.7, rand(0, Math.PI*2));
+
+    const DURATION_MS = 2600;
+    const FPS = 16;
+    const FRAME_DELAY = 1000/FPS;
+    let elapsed = 0;
+    const frames = []; // snapshot canvases captured during recording
+
+    statusText.textContent = '녹화 중… 흔들어서 움직임을 만들어보세요!';
+
+    const captureInterval = setInterval(()=>{
+      // snapshot the live canvas at LOGICAL size (matches GIF output size,
+      // keeps memory reasonable regardless of device pixel ratio) — flatten
+      // onto a solid white backing so the GIF has a clean, reliable background
+      const snap = document.createElement('canvas');
+      snap.width = LOGICAL; snap.height = LOGICAL;
+      const sctx = snap.getContext('2d');
+      sctx.fillStyle = gifBgColor;
+      sctx.fillRect(0, 0, LOGICAL, LOGICAL);
+      sctx.drawImage(canvas, 0, 0, LOGICAL, LOGICAL);
+      frames.push(snap);
+
+      elapsed += FRAME_DELAY;
+      progressBar.style.width = Math.min(100, (elapsed/DURATION_MS)*45) + '%';
+
+      if(elapsed >= DURATION_MS){
+        clearInterval(captureInterval);
+        statusText.textContent = '루프되게 이어붙이는 중…';
+
+        // boomerang: play forward, then back through the middle frames
+        // (excluding both endpoints so they aren't held twice) — this returns
+        // to the exact starting pixels every loop, so it plays seamlessly
+        const sequence = frames.concat(frames.slice(1, -1).reverse());
+        progressBar.style.width = '55%';
+
+        sequence.forEach(f=> gif.addFrame(f, {delay: FRAME_DELAY}));
+
+        statusText.textContent = 'GIF로 변환 중…';
+        gif.on('progress', (p)=>{
+          progressBar.style.width = (55 + p*45) + '%';
+        });
+        gif.on('finished', (blob)=>{
+          const url = URL.createObjectURL(blob);
+          resultLink.href = url;
+          resultLink.classList.add('show');
+          statusText.textContent = '완성! 처음과 끝이 이어지는 루프예요 ✨';
+          progressBar.style.width = '100%';
+          recording = false;
+          gifBtn.disabled = false;
+        });
+        gif.render();
+      }
+    }, FRAME_DELAY);
+  });
+
+})();
+</script>
+</body>
+</html>
