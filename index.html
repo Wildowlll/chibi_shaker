@@ -1128,8 +1128,8 @@
     }
 
     const gif = new GIF({
-      workers: 2,
-      quality: 8,
+      workers: 3,
+      quality: 1,   // gif.js: lower = better color sampling (1 is best). Size/fps unchanged.
       width: LOGICAL,
       height: LOGICAL,
       workerScript: workerUrl,
